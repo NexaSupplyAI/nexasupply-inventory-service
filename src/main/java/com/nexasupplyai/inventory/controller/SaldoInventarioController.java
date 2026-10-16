@@ -23,6 +23,11 @@ public class SaldoInventarioController {
         return saldoInventarioService.listarPorProducto(idProducto);
     }
 
+    @GetMapping("/stock-bajo")
+    public List<SaldoInventarioResponse> listarStockBajo() {
+        return saldoInventarioService.listarStockBajo();
+    }
+
     @GetMapping("/{id}")
     public SaldoInventarioResponse obtenerPorId(@PathVariable UUID id) {
         return saldoInventarioService.obtenerPorId(id);

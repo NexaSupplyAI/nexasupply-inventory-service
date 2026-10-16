@@ -14,7 +14,7 @@ public class OrderServiceClient {
 
     public OrderServiceClient(
             RestClient.Builder constructorCliente,
-            @Value("${clients.order-service.base-url}") String urlBaseOrderService
+            @Value("${clients.order-service.base-url:http://localhost:8082}") String urlBaseOrderService
     ) {
         this.clienteHttp = constructorCliente.baseUrl(urlBaseOrderService).build();
     }

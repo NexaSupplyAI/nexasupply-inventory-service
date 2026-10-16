@@ -2,6 +2,7 @@ package com.nexasupplyai.inventory.repository;
 
 import com.nexasupplyai.inventory.entity.SaldoInventario;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,4 +17,19 @@ public interface SaldoInventarioRepository extends JpaRepository<SaldoInventario
     List<SaldoInventario> findAllByProductoId(UUID idProducto);
 
     List<SaldoInventario> findAllByAlmacenId(UUID idAlmacen);
+
+    @Query("""
+            select saldo
+            from SaldoInventario saldo
+            where saldo.producto.activo = true
+              and saldo.almacen.activo = true
+              and (saldo.cantidadEnMano - saldo.cantidadReservada) <=
+                  case
+                    when saldo.producto.stockMinimo > saldo.producto.puntoReorden
+                    then saldo.producto.stockMinimo
+                    else saldo.producto.puntoReorden
+                  end
+            order by saldo.producto.nombre, saldo.almacen.nombre
+            """)
+    List<SaldoInventario> findAllConStockBajo();
 }
