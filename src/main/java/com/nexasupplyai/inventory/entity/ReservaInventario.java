@@ -1,6 +1,7 @@
 package com.nexasupplyai.inventory.entity;
 
 import com.nexasupplyai.inventory.enums.EstadoReservaInventario;
+import com.nexasupplyai.inventory.enums.EstadoReservaInventarioConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,7 +40,7 @@ public class ReservaInventario {
     @Column(name = "quantity", nullable = false, precision = 14, scale = 3)
     private BigDecimal cantidad;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = EstadoReservaInventarioConverter.class)
     @Column(name = "status", nullable = false, length = 20)
     private EstadoReservaInventario estado = EstadoReservaInventario.ACTIVA;
 

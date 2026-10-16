@@ -1,6 +1,7 @@
 package com.nexasupplyai.inventory.entity;
 
 import com.nexasupplyai.inventory.enums.TipoMovimientoInventario;
+import com.nexasupplyai.inventory.enums.TipoMovimientoInventarioConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,7 +36,7 @@ public class MovimientoInventario {
     @JoinColumn(name = "product_id", nullable = false)
     private Producto producto;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = TipoMovimientoInventarioConverter.class)
     @Column(name = "movement_type", nullable = false, length = 30)
     private TipoMovimientoInventario tipoMovimiento;
 
