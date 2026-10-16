@@ -3,10 +3,10 @@ package com.nexasupplyai.inventory.service.impl;
 import com.nexasupplyai.inventory.dto.request.CategoriaRequest;
 import com.nexasupplyai.inventory.dto.response.CategoriaResponse;
 import com.nexasupplyai.inventory.entity.Categoria;
+import com.nexasupplyai.inventory.exception.CategoriaNoEncontradaException;
 import com.nexasupplyai.inventory.mapper.CategoriaMapper;
 import com.nexasupplyai.inventory.repository.CategoriaRepository;
 import com.nexasupplyai.inventory.service.interfaces.CategoriaServiceInterface;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +53,7 @@ public class CategoriaServiceImpl implements CategoriaServiceInterface {
 
     private Categoria buscarEntidad(UUID id) {
         return categoriaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada: " + id));
+                .orElseThrow(() -> new CategoriaNoEncontradaException(id));
     }
 
     private Categoria resolverPadre(UUID idPadre, UUID idCategoria) {

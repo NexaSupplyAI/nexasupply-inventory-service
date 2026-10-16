@@ -5,12 +5,14 @@ import com.nexasupplyai.inventory.dto.response.MovimientoInventarioResponse;
 import com.nexasupplyai.inventory.entity.Almacen;
 import com.nexasupplyai.inventory.entity.MovimientoInventario;
 import com.nexasupplyai.inventory.entity.Producto;
+import com.nexasupplyai.inventory.exception.AlmacenNoEncontradoException;
+import com.nexasupplyai.inventory.exception.MovimientoInventarioNoEncontradoException;
+import com.nexasupplyai.inventory.exception.ProductoNoEncontradoException;
 import com.nexasupplyai.inventory.mapper.MovimientoInventarioMapper;
 import com.nexasupplyai.inventory.repository.AlmacenRepository;
 import com.nexasupplyai.inventory.repository.MovimientoInventarioRepository;
 import com.nexasupplyai.inventory.repository.ProductoRepository;
 import com.nexasupplyai.inventory.service.interfaces.MovimientoInventarioServiceInterface;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,16 +53,16 @@ public class MovimientoInventarioServiceImpl implements MovimientoInventarioServ
 
     private MovimientoInventario buscarEntidad(UUID id) {
         return movimientoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Movimiento de inventario no encontrado: " + id));
+                .orElseThrow(() -> new MovimientoInventarioNoEncontradoException(id));
     }
 
     private Almacen buscarAlmacen(UUID id) {
         return almacenRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Almacén no encontrado: " + id));
+                .orElseThrow(() -> new AlmacenNoEncontradoException(id));
     }
 
     private Producto buscarProducto(UUID id) {
         return productoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado: " + id));
+                .orElseThrow(() -> new ProductoNoEncontradoException(id));
     }
 }

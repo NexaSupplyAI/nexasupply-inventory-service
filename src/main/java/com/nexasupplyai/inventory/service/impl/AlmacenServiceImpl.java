@@ -3,10 +3,10 @@ package com.nexasupplyai.inventory.service.impl;
 import com.nexasupplyai.inventory.dto.request.AlmacenRequest;
 import com.nexasupplyai.inventory.dto.response.AlmacenResponse;
 import com.nexasupplyai.inventory.entity.Almacen;
+import com.nexasupplyai.inventory.exception.AlmacenNoEncontradoException;
 import com.nexasupplyai.inventory.mapper.AlmacenMapper;
 import com.nexasupplyai.inventory.repository.AlmacenRepository;
 import com.nexasupplyai.inventory.service.interfaces.AlmacenServiceInterface;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +53,7 @@ public class AlmacenServiceImpl implements AlmacenServiceInterface {
 
     private Almacen buscarEntidad(UUID id) {
         return almacenRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Almacén no encontrado: " + id));
+                .orElseThrow(() -> new AlmacenNoEncontradoException(id));
     }
 
     private void validarCodigoUnico(String codigo, UUID idActual) {

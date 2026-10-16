@@ -5,12 +5,14 @@ import com.nexasupplyai.inventory.dto.response.ReservaInventarioResponse;
 import com.nexasupplyai.inventory.entity.Almacen;
 import com.nexasupplyai.inventory.entity.Producto;
 import com.nexasupplyai.inventory.entity.ReservaInventario;
+import com.nexasupplyai.inventory.exception.AlmacenNoEncontradoException;
+import com.nexasupplyai.inventory.exception.ProductoNoEncontradoException;
+import com.nexasupplyai.inventory.exception.ReservaInventarioNoEncontradaException;
 import com.nexasupplyai.inventory.mapper.ReservaInventarioMapper;
 import com.nexasupplyai.inventory.repository.AlmacenRepository;
 import com.nexasupplyai.inventory.repository.ProductoRepository;
 import com.nexasupplyai.inventory.repository.ReservaInventarioRepository;
 import com.nexasupplyai.inventory.service.interfaces.ReservaInventarioServiceInterface;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,16 +61,16 @@ public class ReservaInventarioServiceImpl implements ReservaInventarioServiceInt
 
     private ReservaInventario buscarEntidad(UUID id) {
         return reservaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Reserva de inventario no encontrada: " + id));
+                .orElseThrow(() -> new ReservaInventarioNoEncontradaException(id));
     }
 
     private Almacen buscarAlmacen(UUID id) {
         return almacenRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Almacén no encontrado: " + id));
+                .orElseThrow(() -> new AlmacenNoEncontradoException(id));
     }
 
     private Producto buscarProducto(UUID id) {
         return productoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado: " + id));
+                .orElseThrow(() -> new ProductoNoEncontradoException(id));
     }
 }
