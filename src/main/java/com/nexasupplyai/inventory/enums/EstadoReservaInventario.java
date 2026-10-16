@@ -1,9 +1,9 @@
 package com.nexasupplyai.inventory.enums;
 
 public enum EstadoReservaInventario {
-    ACTIVA,
-    CONFIRMADA,
-    LIBERADA,
-    CANCELADA,
-    EXPIRADA
+    ACTIVE,
+    CONFIRMED,
+    RELEASED,
+    CANCELLED,
+    EXPIRED
 }

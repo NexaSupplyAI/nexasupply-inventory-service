@@ -1,12 +1,12 @@
 package com.nexasupplyai.inventory.enums;
 
 public enum TipoMovimientoInventario {
-    ENTRADA,
-    SALIDA,
-    AJUSTE_ENTRADA,
-    AJUSTE_SALIDA,
-    TRANSFERENCIA_ENTRADA,
-    TRANSFERENCIA_SALIDA,
-    RESERVA,
-    LIBERACION
+    IN,
+    OUT,
+    ADJUSTMENT_IN,
+    ADJUSTMENT_OUT,
+    TRANSFER_IN,
+    TRANSFER_OUT,
+    RESERVATION,
+    RELEASE
 }
