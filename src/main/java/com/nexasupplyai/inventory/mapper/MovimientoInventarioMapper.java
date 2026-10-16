@@ -21,7 +21,7 @@ public interface MovimientoInventarioMapper {
     @Mapping(target = "claveIdempotencia", source = "request.claveIdempotencia")
     @Mapping(target = "motivo", source = "request.motivo")
     @Mapping(target = "idActor", source = "request.idActor")
-    @Mapping(target = "metadatos", source = "request.metadatos")
+    @Mapping(target = "metadatos", source = "request.metadatos", defaultExpression = "java(java.util.Map.of())")
     @Mapping(target = "ocurrioEn", source = "request.ocurrioEn")
     @Mapping(target = "almacen", source = "almacen")
     @Mapping(target = "producto", source = "producto")
