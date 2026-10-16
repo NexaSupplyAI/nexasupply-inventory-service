@@ -1,7 +1,6 @@
 package com.nexasupplyai.inventory.entity;
 
 import com.nexasupplyai.inventory.enums.UnidadMedida;
-import com.nexasupplyai.inventory.enums.UnidadMedidaConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,7 +44,7 @@ public class Producto {
     @JoinColumn(name = "category_id", nullable = false)
     private Categoria categoria;
 
-    @Convert(converter = UnidadMedidaConverter.class)
+    @Enumerated(EnumType.STRING)
     @Column(name = "unit_of_measure", nullable = false, length = 20)
     private UnidadMedida unidadMedida = UnidadMedida.UND;
 
