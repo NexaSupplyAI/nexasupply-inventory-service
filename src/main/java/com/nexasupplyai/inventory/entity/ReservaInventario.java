@@ -41,7 +41,7 @@ public class ReservaInventario {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    private EstadoReservaInventario estado = EstadoReservaInventario.ACTIVA;
+    private EstadoReservaInventario estado = EstadoReservaInventario.ACTIVE;
 
     @Column(name = "expires_at")
     private OffsetDateTime expiraEn;
