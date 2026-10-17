@@ -15,8 +15,6 @@ import jakarta.persistence.LockModeType;
 @Repository
 public interface SaldoInventarioRepository extends JpaRepository<SaldoInventario, UUID> {
 
-    Optional<SaldoInventario> findByAlmacenIdAndProductoId(UUID idAlmacen, UUID idProducto);
-
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             select saldo from SaldoInventario saldo
@@ -25,8 +23,6 @@ public interface SaldoInventarioRepository extends JpaRepository<SaldoInventario
     Optional<SaldoInventario> bloquearPorAlmacenYProducto(UUID idAlmacen, UUID idProducto);
 
     List<SaldoInventario> findAllByProductoId(UUID idProducto);
-
-    List<SaldoInventario> findAllByAlmacenId(UUID idAlmacen);
 
     @Query("""
             select saldo
