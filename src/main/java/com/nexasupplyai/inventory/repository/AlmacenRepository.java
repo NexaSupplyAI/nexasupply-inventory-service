@@ -13,7 +13,5 @@ public interface AlmacenRepository extends JpaRepository<Almacen, UUID> {
 
     Optional<Almacen> findByCodigo(String codigo);
 
-    boolean existsByCodigo(String codigo);
-
     List<Almacen> findAllByActivoTrue();
 }
