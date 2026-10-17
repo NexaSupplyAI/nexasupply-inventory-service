@@ -19,8 +19,8 @@ public class SaldoInventarioController {
     private final SaldoInventarioServiceInterface saldoInventarioService;
 
     @GetMapping
-    public List<SaldoInventarioResponse> listarPorProducto(@RequestParam UUID idProducto) {
-        return saldoInventarioService.listarPorProducto(idProducto);
+    public List<SaldoInventarioResponse> listarPorProducto(@RequestParam(required = false) UUID idProducto) {
+        return idProducto == null ? saldoInventarioService.listar() : saldoInventarioService.listarPorProducto(idProducto);
     }
 
     @GetMapping("/stock-bajo")
