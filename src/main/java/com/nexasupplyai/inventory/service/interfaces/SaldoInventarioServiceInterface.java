@@ -1,6 +1,5 @@
 package com.nexasupplyai.inventory.service.interfaces;
 
-import com.nexasupplyai.inventory.dto.request.SaldoInventarioRequest;
 import com.nexasupplyai.inventory.dto.response.SaldoInventarioResponse;
 
 import java.util.List;
@@ -11,7 +10,4 @@ public interface SaldoInventarioServiceInterface {
     List<SaldoInventarioResponse> listarPorProducto(UUID idProducto);
     List<SaldoInventarioResponse> listarStockBajo();
     SaldoInventarioResponse obtenerPorId(UUID id);
-    SaldoInventarioResponse crear(SaldoInventarioRequest request);
-    SaldoInventarioResponse actualizar(UUID id, SaldoInventarioRequest request);
-    void eliminar(UUID id);
 }
