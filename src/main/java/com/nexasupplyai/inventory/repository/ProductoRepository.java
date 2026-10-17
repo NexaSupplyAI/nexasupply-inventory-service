@@ -15,9 +15,5 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
 
     Optional<Producto> findByCodigoBarras(String codigoBarras);
 
-    boolean existsBySku(String sku);
-
-    boolean existsByCodigoBarras(String codigoBarras);
-
     List<Producto> findAllByCategoriaIdAndActivoTrue(UUID idCategoria);
 }
