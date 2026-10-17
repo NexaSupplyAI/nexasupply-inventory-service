@@ -1,9 +1,12 @@
 spring:
+  profiles:
+    active: test
   datasource:
     url: jdbc:h2:mem:inventory-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
     username: sa
     password:
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: none
   security:
