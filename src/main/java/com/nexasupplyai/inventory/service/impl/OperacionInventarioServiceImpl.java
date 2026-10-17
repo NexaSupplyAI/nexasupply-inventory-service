@@ -35,6 +35,7 @@ public class OperacionInventarioServiceImpl implements OperacionInventarioServic
     @Override
     @Transactional
     public OperacionInventarioResponse reservar(ReservaOrdenRequest request) {
+        validarLineasUnicas(request.lineas());
         List<ReservaInventario> existentes = reservaRepository.bloquearTodasPorOrden(request.idOrden());
         List<ReservaInventario> vigentes = existentes.stream()
                 .filter(r -> r.getEstado() == EstadoReservaInventario.ACTIVE
@@ -45,17 +46,10 @@ public class OperacionInventarioServiceImpl implements OperacionInventarioServic
             return respuesta(request.idOrden(), "RESERVED", true, vigentes);
         }
 
-        Set<String> claves = new HashSet<>();
         List<LineaReservaInventarioRequest> lineas = request.lineas().stream()
                 .sorted(Comparator.comparing((LineaReservaInventarioRequest l) -> l.idProducto().toString())
                         .thenComparing(l -> l.idAlmacen().toString()))
                 .toList();
-        for (LineaReservaInventarioRequest linea : lineas) {
-            if (!claves.add(linea.idAlmacen() + ":" + linea.idProducto())) {
-                throw new IllegalArgumentException("La orden contiene líneas duplicadas para almacén y producto");
-            }
-        }
-
         List<ReservaInventario> creadas = new ArrayList<>();
         for (LineaReservaInventarioRequest linea : lineas) {
             SaldoInventario saldo = saldoRepository.bloquearPorAlmacenYProducto(linea.idAlmacen(), linea.idProducto())
@@ -91,11 +85,17 @@ public class OperacionInventarioServiceImpl implements OperacionInventarioServic
         if (reservas.isEmpty()) throw new IllegalArgumentException("La orden no tiene reservas de inventario");
         boolean idempotente = reservas.stream().allMatch(r -> r.getEstado() == EstadoReservaInventario.CONFIRMED);
         if (idempotente) return respuesta(idOrden, "CONSUMED", true, reservas);
+        if (reservas.stream().anyMatch(r -> r.getEstado() != EstadoReservaInventario.ACTIVE)) {
+            throw new IllegalStateException("La orden contiene reservas que no pueden consumirse");
+        }
 
         for (ReservaInventario reserva : reservas) {
-            if (reserva.getEstado() != EstadoReservaInventario.ACTIVE) continue;
             SaldoInventario saldo = bloquearSaldo(reserva);
             BigDecimal anterior = saldo.getCantidadEnMano();
+            if (saldo.getCantidadReservada().compareTo(reserva.getCantidad()) < 0
+                    || saldo.getCantidadEnMano().compareTo(reserva.getCantidad()) < 0) {
+                throw new IllegalStateException("El saldo no es consistente con la reserva de inventario");
+            }
             saldo.setCantidadReservada(saldo.getCantidadReservada().subtract(reserva.getCantidad()));
             saldo.setCantidadEnMano(saldo.getCantidadEnMano().subtract(reserva.getCantidad()));
             reserva.setEstado(EstadoReservaInventario.CONFIRMED);
@@ -112,10 +112,17 @@ public class OperacionInventarioServiceImpl implements OperacionInventarioServic
     public OperacionInventarioResponse liberar(UUID idOrden) {
         List<ReservaInventario> reservas = reservaRepository.bloquearTodasPorOrden(idOrden);
         if (reservas.isEmpty()) return respuesta(idOrden, "RELEASED", true, List.of());
+        boolean idempotente = reservas.stream().allMatch(r -> r.getEstado() == EstadoReservaInventario.RELEASED);
+        if (idempotente) return respuesta(idOrden, "RELEASED", true, reservas);
+        if (reservas.stream().anyMatch(r -> r.getEstado() != EstadoReservaInventario.ACTIVE)) {
+            throw new IllegalStateException("La orden contiene reservas que no pueden liberarse");
+        }
         boolean cambio = false;
         for (ReservaInventario reserva : reservas) {
-            if (reserva.getEstado() != EstadoReservaInventario.ACTIVE) continue;
             SaldoInventario saldo = bloquearSaldo(reserva);
+            if (saldo.getCantidadReservada().compareTo(reserva.getCantidad()) < 0) {
+                throw new IllegalStateException("El saldo reservado es menor que la reserva a liberar");
+            }
             BigDecimal disponibleAntes = saldo.getCantidadEnMano().subtract(saldo.getCantidadReservada());
             saldo.setCantidadReservada(saldo.getCantidadReservada().subtract(reserva.getCantidad()));
             reserva.setEstado(EstadoReservaInventario.RELEASED);
@@ -147,7 +154,7 @@ public class OperacionInventarioServiceImpl implements OperacionInventarioServic
                 anterior, saldo.getCantidadEnMano(), request.tipoReferencia(), request.idReferencia(),
                 request.claveIdempotencia(), request.motivo());
         movimiento.setIdActor(request.idActor());
-        return movimientoMapper.aResponse(movimientoRepository.save(movimiento));
+        return movimientoMapper.aResponse(movimiento);
     }
 
     private SaldoInventario nuevoSaldo(Almacen almacen, Producto producto) {
@@ -194,6 +201,15 @@ public class OperacionInventarioServiceImpl implements OperacionInventarioServic
         Map<String, BigDecimal> actual = new HashMap<>();
         existentes.forEach(r -> actual.put(r.getAlmacen().getId() + ":" + r.getProducto().getId(), r.getCantidad()));
         if (!esperado.equals(actual)) throw new IllegalArgumentException("La orden ya tiene una reserva diferente");
+    }
+
+    private void validarLineasUnicas(List<LineaReservaInventarioRequest> lineas) {
+        Set<String> claves = new HashSet<>();
+        for (LineaReservaInventarioRequest linea : lineas) {
+            if (!claves.add(linea.idAlmacen() + ":" + linea.idProducto())) {
+                throw new IllegalArgumentException("La orden contiene líneas duplicadas para almacén y producto");
+            }
+        }
     }
 
     private OperacionInventarioResponse respuesta(UUID idOrden, String resultado, boolean idempotente,
