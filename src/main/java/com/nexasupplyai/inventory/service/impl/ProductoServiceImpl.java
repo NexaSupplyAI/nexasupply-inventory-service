@@ -25,6 +25,10 @@ public class ProductoServiceImpl implements ProductoServiceInterface {
     private final CategoriaRepository categoriaRepository;
     private final ProductoMapper productoMapper;
 
+    public List<ProductoResponse> listar() {
+        return productoRepository.findAll().stream().map(productoMapper::aResponse).toList();
+    }
+
     public List<ProductoResponse> listarPorCategoria(UUID idCategoria) {
         return productoRepository.findAllByCategoriaIdAndActivoTrue(idCategoria).stream()
                 .map(productoMapper::aResponse).toList();

@@ -29,8 +29,16 @@ public class SaldoInventarioServiceImpl implements SaldoInventarioServiceInterfa
     private final ProductoRepository productoRepository;
     private final SaldoInventarioMapper saldoMapper;
 
+    public List<SaldoInventarioResponse> listar() {
+        return saldoRepository.findAll().stream().map(saldoMapper::aResponse).toList();
+    }
+
     public List<SaldoInventarioResponse> listarPorProducto(UUID idProducto) {
         return saldoRepository.findAllByProductoId(idProducto).stream().map(saldoMapper::aResponse).toList();
+    }
+
+    public List<SaldoInventarioResponse> listarStockBajo() {
+        return saldoRepository.findAllConStockBajo().stream().map(saldoMapper::aResponse).toList();
     }
 
     public SaldoInventarioResponse obtenerPorId(UUID id) {
@@ -51,7 +59,14 @@ public class SaldoInventarioServiceImpl implements SaldoInventarioServiceInterfa
     public SaldoInventarioResponse actualizar(UUID id, SaldoInventarioRequest request) {
         validarCantidades(request);
         SaldoInventario saldo = buscarEntidad(id);
-        saldoMapper.actualizarEntidad(request, buscarAlmacen(request.idAlmacen()), buscarProducto(request.idProducto()), saldo);
+        Almacen almacen = buscarAlmacen(request.idAlmacen());
+        Producto producto = buscarProducto(request.idProducto());
+        saldoRepository.findByAlmacenIdAndProductoId(almacen.getId(), producto.getId())
+                .filter(existente -> !existente.getId().equals(id))
+                .ifPresent(existente -> {
+                    throw new IllegalArgumentException("Ya existe un saldo para ese almacén y producto");
+                });
+        saldoMapper.actualizarEntidad(request, almacen, producto, saldo);
         return saldoMapper.aResponse(saldoRepository.save(saldo));
     }
 

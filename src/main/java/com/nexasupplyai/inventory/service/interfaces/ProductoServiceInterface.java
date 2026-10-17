@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ProductoServiceInterface {
+    List<ProductoResponse> listar();
     List<ProductoResponse> listarPorCategoria(UUID idCategoria);
     ProductoResponse obtenerPorId(UUID id);
     ProductoResponse crear(ProductoRequest request);

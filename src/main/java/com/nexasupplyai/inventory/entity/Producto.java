@@ -46,7 +46,7 @@ public class Producto {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "unit_of_measure", nullable = false, length = 20)
-    private UnidadMedida unidadMedida = UnidadMedida.UND;
+    private UnidadMedida unidadMedida = UnidadMedida.UNIT;
 
     @Column(name = "sale_price", nullable = false, precision = 14, scale = 2)
     private BigDecimal precioVenta = BigDecimal.ZERO;

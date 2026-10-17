@@ -19,8 +19,8 @@ public class ProductoController {
     private final ProductoServiceInterface productoService;
 
     @GetMapping
-    public List<ProductoResponse> listarPorCategoria(@RequestParam UUID idCategoria) {
-        return productoService.listarPorCategoria(idCategoria);
+    public List<ProductoResponse> listarPorCategoria(@RequestParam(required = false) UUID idCategoria) {
+        return idCategoria == null ? productoService.listar() : productoService.listarPorCategoria(idCategoria);
     }
 
     @GetMapping("/{id}")

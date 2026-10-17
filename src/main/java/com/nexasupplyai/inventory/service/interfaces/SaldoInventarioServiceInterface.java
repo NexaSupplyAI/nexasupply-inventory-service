@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.UUID;
 
 public interface SaldoInventarioServiceInterface {
+    List<SaldoInventarioResponse> listar();
     List<SaldoInventarioResponse> listarPorProducto(UUID idProducto);
+    List<SaldoInventarioResponse> listarStockBajo();
     SaldoInventarioResponse obtenerPorId(UUID id);
     SaldoInventarioResponse crear(SaldoInventarioRequest request);
     SaldoInventarioResponse actualizar(UUID id, SaldoInventarioRequest request);
