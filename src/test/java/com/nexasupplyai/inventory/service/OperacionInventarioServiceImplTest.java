@@ -2,6 +2,8 @@ package com.nexasupplyai.inventory.service;
 
 import com.nexasupplyai.inventory.dto.request.LineaReservaInventarioRequest;
 import com.nexasupplyai.inventory.dto.request.ReservaOrdenRequest;
+import com.nexasupplyai.inventory.dto.request.EntradaInventarioRequest;
+import com.nexasupplyai.inventory.enums.EstadoReservaInventario;
 import com.nexasupplyai.inventory.entity.*;
 import com.nexasupplyai.inventory.mapper.MovimientoInventarioMapper;
 import com.nexasupplyai.inventory.mapper.ReservaInventarioMapper;
@@ -69,5 +71,66 @@ class OperacionInventarioServiceImplTest {
         assertThrows(IllegalArgumentException.class, () -> servicio.reservar(new ReservaOrdenRequest(orden,
                 List.of(new LineaReservaInventarioRequest(almacenId, productoId, new BigDecimal("3"))), null)));
         verifyNoInteractions(movimientos);
+    }
+
+    @Test
+    void liberaReservaSinReducirStockEnMano() {
+        UUID orden = UUID.randomUUID(), almacenId = UUID.randomUUID(), productoId = UUID.randomUUID();
+        Almacen almacen = new Almacen(); almacen.setId(almacenId);
+        Producto producto = new Producto(); producto.setId(productoId);
+        SaldoInventario saldo = new SaldoInventario(); saldo.setAlmacen(almacen); saldo.setProducto(producto);
+        saldo.setCantidadEnMano(new BigDecimal("10")); saldo.setCantidadReservada(new BigDecimal("3"));
+        ReservaInventario reserva = new ReservaInventario(); reserva.setAlmacen(almacen); reserva.setProducto(producto);
+        reserva.setIdOrdenExterna(orden); reserva.setCantidad(new BigDecimal("3"));
+        reserva.setEstado(EstadoReservaInventario.ACTIVE);
+        when(reservas.bloquearTodasPorOrden(orden)).thenReturn(List.of(reserva));
+        when(saldos.bloquearPorAlmacenYProducto(almacenId, productoId)).thenReturn(Optional.of(saldo));
+        when(movimientos.save(any())).thenAnswer(i -> i.getArgument(0));
+        var servicio = new OperacionInventarioServiceImpl(saldos, reservas, movimientos, almacenes,
+                productos, reservaMapper, movimientoMapper);
+
+        servicio.liberar(orden);
+
+        assertEquals(new BigDecimal("10"), saldo.getCantidadEnMano());
+        assertEquals(BigDecimal.ZERO, saldo.getCantidadReservada());
+        assertEquals(EstadoReservaInventario.RELEASED, reserva.getEstado());
+    }
+
+    @Test
+    void entradaIdempotenteNoIncrementaDosVeces() {
+        UUID almacenId = UUID.randomUUID(), productoId = UUID.randomUUID(), referencia = UUID.randomUUID();
+        MovimientoInventario existente = new MovimientoInventario();
+        when(movimientos.findByClaveIdempotencia("receipt:1")).thenReturn(Optional.of(existente));
+        var servicio = new OperacionInventarioServiceImpl(saldos, reservas, movimientos, almacenes,
+                productos, reservaMapper, movimientoMapper);
+
+        servicio.registrarEntrada(new EntradaInventarioRequest(almacenId, productoId, BigDecimal.ONE,
+                "GOODS_RECEIPT", referencia, "receipt:1", null, "tester"));
+
+        verifyNoInteractions(saldos, almacenes, productos);
+        verify(movimientos, never()).save(any());
+    }
+
+    @Test
+    void consumirReservaReduceStockYReserva() {
+        UUID orden = UUID.randomUUID(), almacenId = UUID.randomUUID(), productoId = UUID.randomUUID();
+        Almacen almacen = new Almacen(); almacen.setId(almacenId);
+        Producto producto = new Producto(); producto.setId(productoId);
+        SaldoInventario saldo = new SaldoInventario(); saldo.setAlmacen(almacen); saldo.setProducto(producto);
+        saldo.setCantidadEnMano(new BigDecimal("10")); saldo.setCantidadReservada(new BigDecimal("3"));
+        ReservaInventario reserva = new ReservaInventario(); reserva.setAlmacen(almacen); reserva.setProducto(producto);
+        reserva.setIdOrdenExterna(orden); reserva.setCantidad(new BigDecimal("3"));
+        reserva.setEstado(EstadoReservaInventario.ACTIVE);
+        when(reservas.bloquearTodasPorOrden(orden)).thenReturn(List.of(reserva));
+        when(saldos.bloquearPorAlmacenYProducto(almacenId, productoId)).thenReturn(Optional.of(saldo));
+        when(movimientos.save(any())).thenAnswer(i -> i.getArgument(0));
+        var servicio = new OperacionInventarioServiceImpl(saldos, reservas, movimientos, almacenes,
+                productos, reservaMapper, movimientoMapper);
+
+        servicio.consumir(orden);
+
+        assertEquals(new BigDecimal("7"), saldo.getCantidadEnMano());
+        assertEquals(BigDecimal.ZERO, saldo.getCantidadReservada());
+        assertEquals(EstadoReservaInventario.CONFIRMED, reserva.getEstado());
     }
 }
