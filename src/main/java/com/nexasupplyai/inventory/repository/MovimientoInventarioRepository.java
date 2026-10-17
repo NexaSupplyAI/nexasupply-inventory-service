@@ -15,10 +15,4 @@ public interface MovimientoInventarioRepository extends JpaRepository<Movimiento
 
     List<MovimientoInventario> findAllByProductoIdOrderByOcurrioEnDesc(UUID idProducto);
 
-    List<MovimientoInventario> findAllByAlmacenIdOrderByOcurrioEnDesc(UUID idAlmacen);
-
-    List<MovimientoInventario> findAllByTipoReferenciaAndIdReferencia(
-            String tipoReferencia,
-            UUID idReferencia
-    );
 }
