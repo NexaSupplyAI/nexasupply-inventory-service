@@ -29,6 +29,10 @@ public class SaldoInventarioServiceImpl implements SaldoInventarioServiceInterfa
     private final ProductoRepository productoRepository;
     private final SaldoInventarioMapper saldoMapper;
 
+    public List<SaldoInventarioResponse> listar() {
+        return saldoRepository.findAll().stream().map(saldoMapper::aResponse).toList();
+    }
+
     public List<SaldoInventarioResponse> listarPorProducto(UUID idProducto) {
         return saldoRepository.findAllByProductoId(idProducto).stream().map(saldoMapper::aResponse).toList();
     }
