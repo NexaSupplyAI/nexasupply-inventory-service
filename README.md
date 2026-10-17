@@ -26,12 +26,12 @@ Es propietario del esquema PostgreSQL `inventory`. Los demás servicios deben co
 | `DB_URL` | No | `jdbc:postgresql://localhost:5432/nexasupplyai` |
 | `DB_USER` | No | `postgres` |
 | `DB_PASSWORD` | No | `postgres` |
-| `JWT_ISSUER_URI` | Sí | Sin valor |
+| `JWT_ISSUER_URI` | Producción | `http://localhost:9999` |
+| `JWT_JWK_SET_URI` | Producción | `http://localhost:9999/.well-known/jwks.json` |
+| `APP_SECURITY_ENABLED` | No | `true` |
 | `CORS_ALLOWED_ORIGINS` | No | `http://localhost:4200` |
-| `ORDER_SERVICE_URL` | No | `http://localhost:8082` |
-| `FLYWAY_ENABLED` | No | `false` |
 
-Flyway permanece desactivado porque el repositorio aún utiliza un script SQL central y no migraciones versionadas por servicio. Hibernate valida el esquema al arrancar y no crea tablas.
+El esquema se inicializa con el script SQL central. Hibernate lo valida al arrancar y no crea tablas.
 
 ## Ejecución
 
@@ -71,12 +71,17 @@ docker run --rm --add-host=host.docker.internal:host-gateway \
 | `GET/POST` | `/api/v1/almacenes` | Listar o crear almacenes |
 | `GET/PUT/DELETE` | `/api/v1/almacenes/{id}` | Operaciones por almacén |
 | `GET/POST` | `/api/v1/saldos-inventario?idProducto={uuid}` | Saldos por producto o creación |
+| `GET` | `/api/v1/saldos-inventario` | Todos los saldos |
 | `GET` | `/api/v1/saldos-inventario/stock-bajo` | Saldos bajo mínimo/punto de reorden |
 | `GET/PUT/DELETE` | `/api/v1/saldos-inventario/{id}` | Operaciones por saldo |
 | `GET/POST` | `/api/v1/reservas-inventario?idOrdenExterna={uuid}` | Reservas por pedido o creación |
 | `GET/PUT/DELETE` | `/api/v1/reservas-inventario/{id}` | Operaciones por reserva |
 | `GET/POST` | `/api/v1/movimientos-inventario?idProducto={uuid}` | Movimientos por producto o creación |
 | `GET` | `/api/v1/movimientos-inventario/{id}` | Consultar movimiento |
+| `POST` | `/api/v1/operaciones-inventario/reservas` | Reservar todas las líneas de un pedido de forma atómica |
+| `POST` | `/api/v1/operaciones-inventario/ordenes/{id}/consumir` | Descontar una reserva al completar el pedido |
+| `POST` | `/api/v1/operaciones-inventario/ordenes/{id}/liberar` | Liberar la reserva de un pedido cancelado |
+| `POST` | `/api/v1/operaciones-inventario/entradas` | Registrar una entrada idempotente de mercadería |
 
 Los valores persistidos de unidad son `UNIT`, `KG`, `G`, `L`, `ML`, `M`, `CM`, `BOX` y `PACK`. Los estados de reserva son `ACTIVE`, `CONFIRMED`, `RELEASED`, `CANCELLED` y `EXPIRED`.
 
@@ -89,6 +94,6 @@ Los valores persistidos de unidad son `UNIT`, `KG`, `G`, `L`, `ML`, `M`, `CM`, `
 
 Los tests de contexto usan H2 y no necesitan PostgreSQL ni un servidor de identidad real.
 
-## Alcance pendiente
+## Garantías del flujo
 
-Los endpoints actuales persisten reservas y movimientos, pero todavía falta una operación de dominio única y atómica que bloquee el saldo, reserve/libere unidades y registre el movimiento correspondiente. No debe considerarse listo el flujo de pedidos hasta implementar esa operación y pruebas de concurrencia.
+Las operaciones usan transacciones, bloqueo pesimista del saldo, versión optimista, claves de idempotencia y restricciones únicas. Reservar, consumir o liberar actualiza saldo, reserva y movimiento dentro de la misma transacción PostgreSQL.
