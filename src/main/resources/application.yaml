@@ -15,22 +15,18 @@ spring:
     properties:
       hibernate:
         default_schema: inventory
-  flyway:
-    enabled: ${FLYWAY_ENABLED:false}
-    schemas: inventory
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${JWT_ISSUER_URI}
+          issuer-uri: ${JWT_ISSUER_URI:http://localhost:9999}
+          jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:9999/.well-known/jwks.json}
 
 app:
+  security:
+    enabled: ${APP_SECURITY_ENABLED:true}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
-
-clients:
-  order-service:
-    base-url: ${ORDER_SERVICE_URL:http://localhost:8082}
 
 management:
   endpoints:
